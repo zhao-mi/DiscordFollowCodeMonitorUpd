@@ -148,33 +148,43 @@
         sendWebhook('这是一条测试消息', config.webhookUrl);
     }
 
-    // 发送webhook
     function sendWebhook(message, webhookUrl) {
-        const url = `${webhookUrl}&text=${encodeURIComponent(message)}`;
-        GM_xmlhttpRequest({
-          method: "POST",
-          url: "https://api.follow.is/invitations/use",
-          headers: {
-              "Content-Type": "application/json"
-          },
-          data: JSON.stringify({
-              "code": message,
-              "csrfToken": "你的Token"
-          }),
-          onload: function(response) {
-              console.log("Response:", response.responseText);
-              if (response.status === 200) {
-                  console.log("请求成功:", JSON.parse(response.responseText));
-              } else {
-                  console.log("请求失败，状态码:", response.status);
-              }
-          },
-          onerror: function(error) {
-              console.error("请求失败:", error);
-          }
-      });
+        // 使用正则表达式提取连续10位的字符串
+        const regex = /[a-zA-Z0-9!@#$%^&*()_+~`{}\[\]:;"'<>,.?\/\\-]{10}/g;
+        const matches = message.match(regex);
 
+        if (matches && matches.length > 0) {
+            const extractedMessage = matches[0]; // 取第一个匹配的结果
+          console.log("10位字符串:",extractedMessage);
+            const url = `${webhookUrl}&text=${encodeURIComponent(extractedMessage)}`;
+
+            GM_xmlhttpRequest({
+                method: "POST",
+                url: "https://api.follow.is/invitations/use",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify({
+                    "code": extractedMessage,
+                    "csrfToken": "你的Token"
+                }),
+                onload: function(response) {
+                    console.log("Response:", response.responseText);
+                    if (response.status === 200) {
+                        console.log("请求成功:", JSON.parse(response.responseText));
+                    } else {
+                        console.log("请求失败，状态码:", response.status);
+                    }
+                },
+                onerror: function(error) {
+                    console.error("请求失败:", error);
+                }
+            });
+        } else {
+            console.log("未找到匹配的10位字符串");
+        }
     }
+
 
     // 显示状态消息
     function showStatus(message, isError = false) {
